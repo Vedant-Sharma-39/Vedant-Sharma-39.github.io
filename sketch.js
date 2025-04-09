@@ -65,7 +65,7 @@ let uiElements = { controlGroups: {} };
 let uiParamDisplays = {};
 
 // =============================================================================
-// --- Math & Grid Helpers --- (No Changes)
+// --- Math & Grid Helpers ---
 // =============================================================================
 function smoothstep(edge0, edge1, x) { x = constrain((x - edge0) / (edge1 - edge0), 0.0, 1.0); return x * x * (3 - 2 * x); }
 function gaussianFalloff(dist, width) { if (width < epsilon) return (dist < epsilon) ? 1.0 : 0.0; return exp(-(dist * dist) / (2 * width * width)); }
@@ -79,20 +79,33 @@ function cubeRound(x, y, z) { let rx = Math.round(x); let ry = Math.round(y); le
 function pixelToHex(x, y) { const fracAxial = pixelToHexFractional(x, y); const fracCube = axialToCube(fracAxial.q, fracAxial.r); const roundedCube = cubeRound(fracCube.x, fracCube.y, fracCube.z); return cubeToAxial(roundedCube.x, roundedCube.y, roundedCube.z); }
 
 // =============================================================================
-// --- Drawing Helpers --- (No Changes)
+// --- Drawing Helpers ---
 // =============================================================================
-function calculateGridDimensions() { /* ... */ }
-function drawHexagon(buffer, q, r, fillColor, strokeColor = color(200, 180), weight = 0.5) { /* ... */ }
+function calculateGridDimensions() {
+    hexWidth = SQRT3 * hexSize; hexHeight = 2 * hexSize; vertSpacing = hexHeight * 3/4;
+    bufferWidth = Math.ceil((maxInitRadius * 2 + 5) * hexWidth); bufferHeight = Math.ceil((maxInitRadius * 2 + 5) * vertSpacing);
+    canvasWidth = bufferWidth + 40; canvasHeight = bufferHeight + 40;
+    gridOriginX = canvasWidth / 2; gridOriginY = canvasHeight / 2;
+}
+
+function drawHexagon(buffer, q, r, fillColor, strokeColor = color(200, 180), weight = 0.5) {
+    const p = hexToPixel(q, r); buffer.fill(fillColor);
+    if (strokeColor) { buffer.stroke(strokeColor); buffer.strokeWeight(weight); }
+    else { buffer.noStroke(); }
+    buffer.beginShape();
+    for (let i = 0; i < 6; i++) { let angle = Math.PI / 3 * i + Math.PI / 6; buffer.vertex(p.x + hexSize * Math.cos(angle), p.y + hexSize * Math.sin(angle)); }
+    buffer.endShape(CLOSE);
+ }
 
 // =============================================================================
-// --- P5.js Core Functions --- (No Changes)
+// --- P5.js Core Functions ---
 // =============================================================================
 function setup() {
     calculateGridDimensions();
     nutrientBuffer = createGraphics(bufferWidth, bufferHeight); finalStateBuffer = createGraphics(bufferWidth, bufferHeight); finalStateBuffer.pixelDensity(1);
     console.log(`Grid/Buffer Size: ${bufferWidth}x${bufferHeight}. Hex Size: ${hexSize}`);
     nutrientColorG = color(100, 220, 100, 200); nutrientColorH = color(200, 100, 220, 200); nutrientColorMix = color(240); cellColorH = color(60, 150, 240); cellColorG = color(255, 140, 40);
-    let totalCanvasHeight = Math.max(canvasHeight, 900);
+    let totalCanvasHeight = Math.max(canvasHeight, 900); // Ensure height for UI panel
     let mainCanvas = createCanvas(canvasWidth, totalCanvasHeight); // Canvas width does NOT include UI panel
     let canvasContainer = select('#canvas-container'); if (canvasContainer) mainCanvas.parent('canvas-container'); else console.error("#canvas-container not found.");
     noiseDetail(4, 0.5);
@@ -144,6 +157,7 @@ function calculateBaseGradientValue(mode, q, r, R, pixelPos, minPixelX, maxPixel
     // *** NEW: Stripe Modes ***
       else if (mode === "stripes_h") {
           // Horizontal stripes based on pixel Y coordinate relative to buffer center
+          // `pixelPos` is relative to grid origin (0,0), which is bufferCenter
           let stripeIndex = floor((pixelPos.y + bufferHeight / 2) / stripeWidth) % 2;
           if (stripeIndex === 0) { baseG = 1.0; baseH = 0.0; } else { baseG = 0.0; baseH = 1.0; }
       } else if (mode === "stripes_v") {
@@ -183,7 +197,6 @@ function initGrid() {
             let gVal = 0.5, hVal = 0.5;
 
             // Calculate base value using helper function
-            // Pass pixelPos relative to buffer center for stripe calcs if needed
             let baseValues = calculateBaseGradientValue(
                 gradientMode === 'noisy' ? noiseBaseGradient : gradientMode,
                 q, r, R, pixelPos, minPixelX, maxPixelX, minPixelY, maxPixelY
@@ -219,7 +232,7 @@ function initGrid() {
 // =============================================================================
 function stepSimulation() {
     // --- STOP CONDITION ---
-    if (liveCells.size === 0 || (lastStepBirths === 0 && simulationSteps > 0)) { if (start) { /* ... Stop logic ... */ start = false; noLoop(); } return; }
+    if (liveCells.size === 0 || (lastStepBirths === 0 && simulationSteps > 0)) { if (start) { let reason = liveCells.size === 0 ? "Extinction" : "Stasis"; console.log(`${reason} @ step ${simulationSteps}. Stopping.`); if (liveCells.size > 0 && !finalStateRendered) { console.log("Rendering final state..."); drawLiveCellsOnBuffer(finalStateBuffer); finalStateRendered = true; console.log("Final state rendered."); } start = false; noLoop(); } return; }
     simulationSteps++;
     // *** Removed galactoseEfficiencyFactor from destructuring ***
     const { K_G, h_max, K_H, mutationProbability, minColonizationFitness, colonizationPressureFactor, maxColonizationProbability } = PARAMS;
@@ -271,10 +284,24 @@ function stepSimulation() {
 }
 
 // =============================================================================
-// --- Drawing Functions --- (No Changes)
+// --- Drawing Functions ---
 // =============================================================================
-function drawLiveCells(targetBuffer){ /* ... */ }
-function drawLiveCellsOnBuffer(targetBuffer){ /* ... */ }
+function drawLiveCells(targetBuffer){
+    if (!targetBuffer) return;
+    for (const [coordStr, cell] of liveCells.entries()) {
+         const [q, r] = coordStr.split(',').map(Number);
+         const cellColor = lerpColor(cellColorH, cellColorG, cell.p);
+         drawHexagon(targetBuffer, q, r, cellColor);
+    }
+}
+function drawLiveCellsOnBuffer(targetBuffer){
+    if (!targetBuffer) return;
+    targetBuffer.push();
+    targetBuffer.translate(targetBuffer.width / 2, targetBuffer.height / 2);
+    targetBuffer.clear();
+    drawLiveCells(targetBuffer);
+    targetBuffer.pop();
+ }
 
 // =============================================================================
 // --- UI Setup & Updates ---
@@ -285,10 +312,19 @@ function createUI() {
         let rowDiv = createDiv('').parent('#ui-panel'); // Row container
         createDiv(label).html(label).parent(rowDiv); // Label
         let slider = createSlider(minVal, maxVal, PARAMS[paramKey], stepVal).parent(rowDiv)
-             .input(() => { PARAMS[paramKey] = slider.value(); select('#' + paramKey + 'ValueDisplay').html(nf(slider.value(), 0, formatDigits)); if (paramKey.includes('gaussian') || paramKey.includes('gradient') || paramKey.includes('noise') || paramKey.includes('stripe')) { if (!start) { console.log(`Gradient param ${paramKey} changed, resetting...`); initGrid(); redraw(); updateUIParamDisplays(); } else { console.log(`Gradient param ${paramKey} changed, but sim running. Reset needed to apply.`); } } });
+             .input(() => { // Input handler
+                 PARAMS[paramKey] = slider.value();
+                 select('#' + paramKey + 'ValueDisplay').html(nf(slider.value(), 0, formatDigits)); // Update display
+                 // Reset grid only if gradient param changed AND paused
+                 if (paramKey.includes('gaussian') || paramKey.includes('gradient') || paramKey.includes('noise') || paramKey.includes('stripe')) {
+                    if (!start) { console.log(`Gradient param ${paramKey} changed, resetting...`); initGrid(); redraw(); updateUIParamDisplays(); }
+                    else { console.log(`Gradient param ${paramKey} changed, but sim running. Reset needed to apply.`); }
+                 }
+             });
         createSpan(nf(PARAMS[paramKey], 1, formatDigits)).parent(rowDiv).id(paramKey + 'ValueDisplay');
         uiElements[paramKey + 'Slider'] = slider; uiParamDisplays[paramKey] = select('#' + paramKey + 'ValueDisplay');
         if (controlGroupArray) { controlGroupArray.push(rowDiv); } return rowDiv; };
+
     const createSectionHeader = (text, controlGroupArray) => { let headerP = createP(`<b>${text}</b>`).parent('#ui-panel'); if (controlGroupArray) { controlGroupArray.push(headerP); } return headerP; };
 
     // --- Create UI Elements ---
@@ -343,9 +379,7 @@ function createUI() {
     createSliderRow("Initial P (H/G Thr):", 'initialP', 0, 1, 0.01, 2);
     createSliderRow("Glc Affinity (K<sub>G</sub>):", 'K_G', 0.01, 1.0, 0.01, 2);
     createSliderRow("Gal Affinity (K<sub>H</sub>):", 'K_H', 0.01, 1.0, 0.01, 2);
-    // *** Updated Label for h_max ***
-    createSliderRow("MAX Gal Rate (h<sub>max</sub>):", 'h_max', 0.1, 1.5, 0.01, 2);
-    // *** REMOVED Gal Max Efficiency Slider ***
+    createSliderRow("MAX Gal Rate (h<sub>max</sub>):", 'h_max', 0.1, 1.5, 0.01, 2); // Updated label
 
     // --- Colonization Parameters Section ---
     createSectionHeader("Colonization Parameters:");
@@ -370,12 +404,35 @@ function createUI() {
     updateUIParamDisplays(); // Initial setup of visibility
 }
 
-function toggleSimulation() { /* ... (no change) ... */ }
-function toggleGradientOverlay() { /* ... (no change) ... */ }
+function toggleSimulation() {
+    start = !start;
+    if (start) { loop(); console.log("Sim Started."); }
+    else { noLoop(); console.log("Sim Paused."); redraw(); }
+    updateDynamicUIText();
+}
+
+function toggleGradientOverlay() {
+    showGradientOverlay = !showGradientOverlay;
+    uiElements.gradientOverlayBtn.html(showGradientOverlay ? 'Show Cells' : 'Show Gradient');
+    if (!start) redraw();
+}
 
 function updateUIParamDisplays() {
     // Update slider values displayed next to them
-    for (const key in uiParamDisplays) { /* ... (Update logic remains same) ... */ }
+    for (const key in uiParamDisplays) {
+        if (PARAMS.hasOwnProperty(key) && uiParamDisplays[key]) {
+            let digits = 2;
+            if (key === 'mutationProbability') digits = 3;
+            else if (key === 'colonizationPressureFactor' || key === 'gaussianWidth') digits = 1;
+            else if (key === 'gaussianSourceQ' || key === 'gaussianSourceR' || key === 'stripeWidth') digits = 0; // Added stripeWidth format
+            else if (key === 'noiseScale' || key === 'noiseIntensityG' || key === 'noiseIntensityH') digits = 2;
+
+            let value = parseFloat(PARAMS[key]);
+            if (uiParamDisplays[key].html() !== nf(value, 0, digits)) {
+                 uiParamDisplays[key].html(nf(value, 0, digits));
+            }
+        }
+    }
 
     // Update visibility of gradient controls
     const currentMode = PARAMS.gradientMode;
@@ -385,19 +442,62 @@ function updateUIParamDisplays() {
         else if (groupName === 'smooth_linear' && (currentMode === 'smooth_linear_h' || currentMode === 'smooth_linear_v')) showGroup = true;
         else if (groupName === 'gaussian_source' && currentMode === 'gaussian_source') showGroup = true;
         else if (groupName === 'noisy' && currentMode === 'noisy') showGroup = true;
-        // *** Added check for stripes ***
-        else if (groupName === 'stripes' && (currentMode === 'stripes_h' || currentMode === 'stripes_v')) showGroup = true;
+        else if (groupName === 'stripes' && (currentMode === 'stripes_h' || currentMode === 'stripes_v')) showGroup = true; // Added stripes check
 
         uiElements.controlGroups[groupName].forEach(element => { if (element) { if (showGroup) element.show(); else element.hide(); } });
     }
 }
 
-function updateDynamicUIText() { /* ... (no change) ... */ }
+
+function updateDynamicUIText() {
+    select('#stepValueDisplay')?.html(`Step: ${simulationSteps}`);
+    select('#cellCountValueDisplay')?.html(`Cell Count: ${liveCells.size}`);
+    let statusSpan = select('#statusValueDisplay');
+
+    if (statusSpan) {
+        let statusMsg = "Initialized"; let statusColor = "#6c757d";
+        if (start) { statusMsg = "RUNNING"; statusColor = "#28a745"; }
+        else if (simulationSteps > 0) {
+            if (liveCells.size === 0) { statusMsg = "EXTINCTION"; statusColor = "#dc3545"; }
+            else if (lastStepBirths === 0 && finalStateRendered) { statusMsg = "STASIS - Stopped"; statusColor = "#dc3545"; }
+            else if (lastStepBirths === 0) { statusMsg = "PAUSED (Stasis likely)"; statusColor = "#ffc107"; }
+            else { statusMsg = "PAUSED"; statusColor = "#ffc107"; }
+        } else { statusMsg = "Ready / PAUSED"; statusColor = "#6c757d"; }
+        statusSpan.html(`Status: ${statusMsg}`).style('color', statusColor);
+    }
+}
 
 // =============================================================================
-// --- User Interaction --- (No Changes Needed)
+// --- User Interaction ---
 // =============================================================================
-function mousePressed() { /* ... */ }
-function plantPatch(centerQ, centerR, radius) { /* ... */ }
-function keyPressed() { /* ... */ }
+function mousePressed() {
+    let canvasRect = select('#canvas-container').elt.getBoundingClientRect();
+    let bodyRect = document.body.getBoundingClientRect();
+    let clickXInCanvas = mouseX - (canvasRect.left - bodyRect.left);
+    let clickYInCanvas = mouseY - (canvasRect.top - bodyRect.top);
+
+    if (clickXInCanvas >= 0 && clickXInCanvas <= canvasWidth && clickYInCanvas >= 0 && clickYInCanvas <= height) {
+        let clickXRelativeToGridOrigin = clickXInCanvas - gridOriginX; let clickYRelativeToGridOrigin = clickYInCanvas - gridOriginY;
+        const hexCoords = pixelToHex(clickXRelativeToGridOrigin, clickYRelativeToGridOrigin);
+        if (axialDistance(hexCoords.q, hexCoords.r, 0, 0) <= maxInitRadius + 2) { plantPatch(hexCoords.q, hexCoords.r, 2); if (!start) redraw(); }
+        else console.log("Click outside defined grid radius.");
+    }
+}
+
+function plantPatch(centerQ, centerR, radius) {
+    let pValueToPlant = constrain(PARAMS.initialP, 0, 1); let count = 0; let newlyPlantedCoords = [];
+    for (let q = -radius; q <= radius; q++) { let r1 = Math.max(-radius, -q - radius); let r2 = Math.min(radius, -q + radius); for (let r = r1; r <= r2; r++) { let targetQ = centerQ + q; let targetR = centerR + r; const coordStr = `${targetQ},${targetR}`; if (glucose.has(coordStr) && !liveCells.has(coordStr)) { const newCell = { p: pValueToPlant }; liveCells.set(coordStr, newCell); newlyPlantedCoords.push(coordStr); count++; } } }
+    if (count > 0) {
+        let cellsToCheckForFrontier = new Set(newlyPlantedCoords);
+        for (const coordStr of newlyPlantedCoords) { const [q, r] = coordStr.split(',').map(Number); for (const dir of axialDirections) { const nq = q + dir.q; const nr = r + dir.r; const neighborCoordStr = `${nq},${nr}`; if (liveCells.has(neighborCoordStr) && !newlyPlantedCoords.includes(neighborCoordStr)) cellsToCheckForFrontier.add(neighborCoordStr); } }
+        for (const coordStrToEvaluate of cellsToCheckForFrontier) { const [q, r] = coordStrToEvaluate.split(',').map(Number); let hasEmptyNeighbor = false; for (const dir of axialDirections) { const nq = q + dir.q; const nr = r + dir.r; const neighborCoordStr = `${nq},${nr}`; if (glucose.has(neighborCoordStr) && !liveCells.has(neighborCoordStr)) { hasEmptyNeighbor = true; break; } } if (hasEmptyNeighbor) frontierSet.add(coordStrToEvaluate); else frontierSet.delete(coordStrToEvaluate); }
+        console.log(`Planted ${count} cells @ p=${pValueToPlant.toFixed(3)} near (q:${centerQ}, r:${centerR}). Frontier updated.`);
+        lastStepBirths = count; if (!start && finalStateRendered) { console.log("Planting invalidated pre-rendered final state."); finalStateRendered = false; }
+        if (!start) { updateDynamicUIText(); redraw(); }
+    } else console.log(`Could not plant near (q:${centerQ}, r:${centerR}) - occupied or outside range.`);
+}
+
+function keyPressed() {
+  if (key === ' ') { toggleSimulation(); return false; }
+}
 // =============================================================================
