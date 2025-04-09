@@ -471,19 +471,46 @@ function updateDynamicUIText() {
 // --- User Interaction ---
 // =============================================================================
 function mousePressed() {
-    let canvasRect = select('#canvas-container').elt.getBoundingClientRect();
-    let bodyRect = document.body.getBoundingClientRect();
-    let clickXInCanvas = mouseX - (canvasRect.left - bodyRect.left);
-    let clickYInCanvas = mouseY - (canvasRect.top - bodyRect.top);
+    // Check if the click is within the bounds of the P5 canvas element itself
+    // 'width' and 'height' are p5 global variables for canvas dimensions
+    if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
 
-    if (clickXInCanvas >= 0 && clickXInCanvas <= canvasWidth && clickYInCanvas >= 0 && clickYInCanvas <= height) {
-        let clickXRelativeToGridOrigin = clickXInCanvas - gridOriginX; let clickYRelativeToGridOrigin = clickYInCanvas - gridOriginY;
-        const hexCoords = pixelToHex(clickXRelativeToGridOrigin, clickYRelativeToGridOrigin);
-        if (axialDistance(hexCoords.q, hexCoords.r, 0, 0) <= maxInitRadius + 2) { plantPatch(hexCoords.q, hexCoords.r, 2); if (!start) redraw(); }
-        else console.log("Click outside defined grid radius.");
+        // Check if the click was within the UI panel area (simple check)
+        if (mouseX > canvasWidth) { // canvasWidth is grid area width
+            return; // Ignore clicks in UI panel
+        }
+
+        // --- Calculate click coordinates in the GRID's coordinate system ---
+        // The grid drawing is centered using translate(gridOriginX, gridOriginY).
+        // We need to reverse this translation for the mouse coordinates.
+        let clickX_in_grid_space = mouseX - gridOriginX;
+        let clickY_in_grid_space = mouseY - gridOriginY;
+        // Now (clickX_in_grid_space, clickY_in_grid_space) represents the click
+        // relative to the visual center of the grid, which corresponds to hex (0,0)'s
+        // pixel position *before* translation. This is what pixelToHex expects.
+
+        // console.log(`Canvas Click: (${mouseX.toFixed(1)}, ${mouseY.toFixed(1)})`);
+        // console.log(`Click Rel to Grid 0,0: (${clickX_in_grid_space.toFixed(1)}, ${clickY_in_grid_space.toFixed(1)})`);
+
+        // Convert the grid-relative pixel coordinates to hex coordinates
+        const hexCoords = pixelToHex(clickX_in_grid_space, clickY_in_grid_space);
+        // console.log(`Calculated Target Hex: q=${hexCoords.q}, r=${hexCoords.r}`);
+
+        // Check if the calculated hex coordinate is within the logical grid radius
+        if (axialDistance(hexCoords.q, hexCoords.r, 0, 0) <= maxInitRadius + 2) {
+            // Plant the patch centered at the calculated hex coordinate
+            plantPatch(hexCoords.q, hexCoords.r, 2); // Use radius 2 patch
+            if (!start) {
+                redraw(); // Force redraw if paused to show the new patch
+            }
+        } else {
+             console.log("Click outside defined grid radius (axial distance check).");
+        }
     }
+    // Else: click was outside the p5 canvas entirely.
 }
 
+// --- Other Interaction functions remain the same ---
 function plantPatch(centerQ, centerR, radius) {
     let pValueToPlant = constrain(PARAMS.initialP, 0, 1); let count = 0; let newlyPlantedCoords = [];
     for (let q = -radius; q <= radius; q++) { let r1 = Math.max(-radius, -q - radius); let r2 = Math.min(radius, -q + radius); for (let r = r1; r <= r2; r++) { let targetQ = centerQ + q; let targetR = centerR + r; const coordStr = `${targetQ},${targetR}`; if (glucose.has(coordStr) && !liveCells.has(coordStr)) { const newCell = { p: pValueToPlant }; liveCells.set(coordStr, newCell); newlyPlantedCoords.push(coordStr); count++; } } }
@@ -500,4 +527,5 @@ function plantPatch(centerQ, centerR, radius) {
 function keyPressed() {
   if (key === ' ') { toggleSimulation(); return false; }
 }
+
 // =============================================================================
