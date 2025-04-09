@@ -1,4 +1,4 @@
-/* --- Basic Reset & Body --- */
+/* --- Basic Reset & Global --- */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -12,304 +12,307 @@ html {
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
         Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    /* Modern Font Stack */
     line-height: 1.6;
-    background-color: #f8f9fa;
-    /* Slightly lighter grey */
+    background-color: #f8f9fa; /* Consistent background for body */
     color: #343a40;
-    /* Darker grey for text */
-    display: flex;
-    flex-direction: column;
-    /* Stack header, sim, footer */
-    align-items: center;
-    /* Center main container */
-    padding: 20px 10px;
-    /* Add padding top/bottom and side */
+    padding: 20px 10px; /* Padding around the main container */
     min-height: 100vh;
-    /* Ensure body takes full height */
+    display: flex; /* Helps center content vertically if needed */
+    flex-direction: column;
+    align-items: center; /* Center #main-container */
 }
 
-/* --- Layout Container --- */
+/* --- Layout Container (#main-container) --- */
+/* Styles apply to the container on both index.html and simulation.html */
 #main-container {
     width: 95%;
-    max-width: 1600px;
-    /* Allow wider for large sims + UI */
+    max-width: 1600px; /* Max width for the entire content area */
     background-color: #ffffff;
-    /* White background for content area */
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    /* Softer shadow */
-    margin-bottom: 30px;
-    /* Space before potential footer */
+    margin-bottom: 30px; /* Space before footer */
 }
 
-/* --- Header --- */
+/* --- General Header Styling --- */
 header {
     text-align: center;
     margin-bottom: 35px;
     border-bottom: 1px solid #dee2e6;
-    /* Lighter border */
     padding-bottom: 25px;
 }
-
 header h1 {
     color: #212529;
-    /* Very dark grey */
     margin-bottom: 15px;
     font-weight: 600;
 }
-
+/* Shared description style */
 p.description {
     font-size: 1em;
-    /* Slightly larger */
     color: #495057;
-    /* Mid-grey */
     max-width: 850px;
     margin: 0 auto;
     line-height: 1.7;
 }
+/* Specific styling for the simulation header */
+header.simulation-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    text-align: left; /* Align back link left */
+}
+header.simulation-header h1 {
+    text-align: center; /* Center sim title */
+    margin-top: 5px;
+    font-size: 1.4em; /* Slightly smaller sim title */
+}
+.back-link {
+    display: block;
+    margin-bottom: 10px;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+.back-link:hover {
+    text-decoration: underline;
+}
 
-/* --- Simulation Wrapper --- */
+
+/* --- Landing Page Specific Content Styling --- */
+#landing-content { padding: 10px; }
+#landing-content h2 {
+    margin-top: 25px;
+    margin-bottom: 10px;
+    color: #0056b3;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    font-weight: 500;
+}
+#landing-content p {
+    margin-bottom: 15px;
+    line-height: 1.7;
+    color: #444;
+}
+.button-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
+    font-weight: 500;
+    margin-top: 10px;
+    border: none;
+    cursor: pointer;
+}
+.button-link:hover {
+    background-color: #0056b3;
+}
+
+
+/* --- Simulation Area Wrapper --- */
 #simulation-area {
     display: flex;
-    /* Arrange canvas and UI side-by-side */
-    justify-content: center;
-    /* Center the items horizontally */
-    align-items: flex-start;
-    /* Align top edges */
-    gap: 25px;
-    /* Space between canvas and UI panel */
-    margin-top: 25px;
-    flex-wrap: wrap;
-    /* Allow wrapping on very small screens */
+    justify-content: center; /* Center canvas and UI panel */
+    align-items: flex-start; /* Align tops */
+    gap: 25px;                /* Space between canvas and UI panel */
+    margin-top: 10px;         /* Reduced top margin for sim area */
+    flex-wrap: wrap;          /* Allow stacking */
 }
 
 /* --- Canvas Container --- */
 #canvas-container {
     display: block;
-    line-height: 0;
-    flex-shrink: 0;
-    /* Don't let canvas shrink if UI wraps */
+    line-height: 0;           /* Prevent extra space below canvas */
+    flex-shrink: 0;           /* Prevent canvas shrinking when wrapping */
     border: 1px solid #ced4da;
     border-radius: 6px;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-    /* Width/Height set by p5.js createCanvas */
-    /* NO position: relative needed here anymore */
+    /* Width & Height are determined by p5.js */
 }
 
-/* --- *** NEW: UI Panel Styling *** --- */
+/* --- UI Panel Styling --- */
 #ui-panel {
-    width: 360px;
-    /* Fixed width for the UI panel */
+    width: 360px;             /* Fixed width */
     flex-shrink: 0;
-    /* Don't shrink the panel */
     padding: 15px 20px;
-    /* Internal padding */
     border: 1px solid #e0e0e0;
     border-radius: 6px;
     background-color: #fdfdfd;
-    position: relative;
-    /* Crucial: Positioning context for absolute children */
-    height: max-content;
-    /* Allow height to grow with content */
-    max-height: 85vh;
-    /* Max height before scrolling */
-    overflow-y: auto;
-    /* Add scrollbar ONLY if content overflows max-height */
+    height: fit-content;      /* Grow height as needed */
+    max-height: 85vh;         /* Max height before scroll */
+    overflow-y: auto;         /* Add scroll if needed */
+    position: relative;       /* Context for absolute elements if ever needed */
 }
 
 
-/* --- UI Element Styling (Targeting elements INSIDE #ui-panel) --- */
+/* --- UI Element Styling (INSIDE #ui-panel) --- */
 
-/* Headers inside UI panel */
-#ui-panel p>b {
+/* Section Headers in UI panel */
+#ui-panel p > b {
     display: block;
-    margin-top: 18px;
-    margin-bottom: 8px;
+    margin-top: 18px; /* Space above header */
+    margin-bottom: 8px; /* Space below header */
     font-weight: 600;
-    color: #0056b3;
+    color: #0056b3; /* Accent color */
     border-bottom: 1px solid #e9ecef;
     padding-bottom: 4px;
     font-size: 1.0em;
 }
-
-#ui-panel p:first-of-type>b {
-    /* Less margin for the very first header */
+/* Less top margin for the very first header */
+#ui-panel p:first-of-type > b {
     margin-top: 0;
 }
 
-
-/* Row Containers (created in JS) */
-#ui-panel>div {
-    /* Targetting the row divs directly inside ui-panel */
-    position: relative !important;
-    /* Override inline absolute if needed, make rows flow */
+/* Row Containers (created as divs) */
+#ui-panel > div {
     width: 100%;
-    margin-bottom: 2px;
-    /* Small gap between rows */
-    min-height: 28px;
-    /* Ensure space */
-    /* Clear floats if needed, but inline-block should be okay */
+    margin-bottom: 5px; /* Consistent small gap between rows */
+    min-height: 28px;   /* Ensure rows have some height */
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
 }
 
-/* Labels, Sliders, Spans within Rows */
-#ui-panel>div>div,
-/* Label div */
-#ui-panel>div>input[type="range"],
-/* Slider */
-#ui-panel>div>span,
-/* Value span */
-#ui-panel>div>select
-
-/* Select dropdown */
-    {
-    display: inline-block;
-    vertical-align: middle;
-    margin-bottom: 5px;
-    /* Spacing below elements in a row */
+/* Elements within a row */
+#ui-panel > div > div { /* Label Div */
+    flex-basis: 45%;
+    flex-shrink: 0;
     font-size: 11px;
-}
-
-#ui-panel>div>div {
-    /* Label specific */
-    width: 48%;
-    /* Adjust label width percentage */
-    margin-right: 2%;
     line-height: 1.4;
+    padding-right: 5px;
+    text-align: left;
+    color: #333;
+    /* Allow text wrapping for long labels if necessary */
+    word-wrap: break-word;
 }
 
-#ui-panel>div>input[type="range"] {
-    /* Slider specific */
-    width: 40%;
-    /* Adjust slider width percentage */
+#ui-panel > div > input[type="range"] { /* Slider */
+    flex-basis: 40%;
+    flex-grow: 1; /* Allow slider to fill space */
     cursor: pointer;
-    height: 6px;
-    border-radius: 3px;
-    background: #dee2e6;
-    outline: none;
-    appearance: none;
-    -webkit-appearance: none;
+    height: 6px; border-radius: 3px; background: #dee2e6; outline: none; appearance: none; -webkit-appearance: none;
+    margin: 0 5px; /* Horizontal margin */
 }
+/* Slider Thumb Styles */
+#ui-panel input[type='range']::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; background: #007bff; border-radius: 50%; cursor: pointer; }
+#ui-panel input[type='range']::-moz-range-thumb { width: 16px; height: 16px; background: #007bff; border-radius: 50%; cursor: pointer; border: none; }
 
-/* Slider thumb styles */
-#ui-panel input[type='range']::-webkit-slider-thumb {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    background: #007bff;
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-#ui-panel input[type='range']::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    background: #007bff;
-    border-radius: 50%;
-    cursor: pointer;
-    border: none;
-}
-
-#ui-panel>div>span {
-    /* Value span specific */
-    width: auto;
-    /* Allow width to adjust */
-    min-width: 35px;
-    /* Minimum space */
-    margin-left: 2%;
+#ui-panel > div > span { /* Value Span */
+    flex-basis: 10%;
+    min-width: 35px; /* Min width for value */
     font-weight: bold;
     text-align: right;
+    font-size: 11px;
+    padding-left: 5px;
+    color: #333;
 }
 
-#ui-panel>div>select {
-    /* Select specific */
-    width: auto;
-    /* Adjust width based on content */
+#ui-panel > div > select { /* Select Dropdown */
+    flex-basis: 50%; /* Adjust as needed, allow growth */
+    flex-grow: 1;
     padding: 4px 6px;
     border: 1px solid #ccc;
     border-radius: 4px;
     background-color: #fff;
-}
-
-
-/* Buttons */
-#ui-panel button {
-    padding: 8px 15px;
-    font-size: 0.9em;
-    font-weight: 500;
+    font-size: 11px;
+    margin-left: 5px;
     cursor: pointer;
-    border: 1px solid #adb5bd;
-    background-color: #f8f9fa;
-    color: #212529;
-    border-radius: 5px;
-    transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-    margin-right: 8px;
-    user-select: none;
-    margin-bottom: 5px;
 }
 
-#ui-panel button:hover {
-    background-color: #e9ecef;
-    border-color: #6c757d;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+/* Specific row adjustments if needed (e.g., Gradient Type row) */
+#gradient-type-row > span,
+#noise-base-row > span {
+     flex-basis: 45%; /* Label */
+     font-size: 11px;
+     padding-right: 5px;
+}
+#gradient-type-row > select,
+#noise-base-row > select {
+    flex-basis: auto; /* Select takes remaining space */
+    flex-grow: 1;
+    font-size: 11px;
 }
 
-#ui-panel button:active {
-    background-color: #dee2e6;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+/* Buttons Container */
+#ui-panel #controls-container {
+    display: block; /* Buttons stack or wrap naturally */
+    margin-top: 10px;
 }
+#ui-panel button {
+    padding: 8px 15px; font-size: 0.9em; font-weight: 500; cursor: pointer;
+    border: 1px solid #adb5bd; background-color: #f8f9fa; color: #212529;
+    border-radius: 5px; transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    margin-right: 8px; user-select: none; margin-bottom: 5px;
+}
+#ui-panel button:hover { background-color: #e9ecef; border-color: #6c757d; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
+#ui-panel button:active { background-color: #dee2e6; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
 
 /* Status Area Specifics */
-#ui-panel #status-section p b {
-    /* Status header */
-    margin-top: 15px;
-    font-size: 1.0em;
+#ui-panel #status-section {
+     display: block; /* Status items stack */
+     margin-top: 15px;
+     border-top: 1px solid #eee;
+     padding-top: 10px;
 }
-
-#ui-panel #status-section span {
-    /* Status text lines */
-    display: block;
-    /* Make each status line take full width */
+#ui-panel #status-section p b { /* Status header */
+     margin-top: 0;
+     margin-bottom: 6px;
+     font-size: 1.0em;
+     border-bottom: none;
+}
+#ui-panel #status-section span { /* Status text lines */
+    display: block; /* Each span on its own line */
     font-size: 12px;
     margin-bottom: 4px;
     font-weight: normal;
-    /* Override potential bold from general span rule */
+    color: #444;
 }
-
-#ui-panel #status-section span#statusValueDisplay {
-    /* The actual status message */
-    font-weight: bold;
+#ui-panel #status-section span#statusValueDisplay { /* The actual status message */
+    font-weight: bold; /* Keep status message bold */
+    /* Color is set dynamically by JS */
 }
 
 
 /* --- Footer --- */
 footer {
-    /* ... */
+    text-align: center;
+    margin-top: auto; /* Push footer down */
+    padding: 20px 10px;
+    border-top: 1px solid #dee2e6;
+    width: 100%;
+    font-size: 0.9em;
+    color: #6c757d;
+    background-color: #f1f3f5;
+}
+/* Footer on simulation page (if needed) */
+footer.simulation-footer {
+    background-color: transparent;
+    border-top: none;
+    padding: 10px;
+    font-size: 0.85em;
+    margin-top: 20px;
 }
 
 /* --- Responsiveness --- */
-@media (max-width: 1000px) {
+@media (max-width: 1000px) { /* Breakpoint for stacking */
+   #simulation-area {
+        flex-direction: column; /* Stack canvas and UI */
+        align-items: center;    /* Center items */
+   }
+   #ui-panel {
+       width: 90%;             /* Wider UI panel when stacked */
+       max-width: 500px;       /* Limit max width */
+       margin-top: 20px;       /* Space below canvas */
+       max-height: none;       /* Remove max height constraint */
+       overflow-y: visible;    /* Disable internal scrolling */
+   }
+}
 
-    /* Adjust breakpoint where stacking occurs */
-    #simulation-area {
-        flex-direction: column;
-        /* Stack canvas and UI */
-        align-items: center;
-        /* Center items vertically when stacked */
-    }
-
-    #ui-panel {
-        width: 90%;
-        /* Allow UI panel to take more width */
-        max-width: 500px;
-        /* But not too wide */
-        margin-top: 20px;
-        /* Space below canvas */
-        max-height: none;
-        /* Remove max height when stacked */
-        overflow-y: visible;
-        /* Don't need internal scroll */
-    }
+@media (max-width: 768px) {
+    body { padding: 10px 5px; }
+    #main-container { padding: 15px; }
+    header h1 { font-size: 1.6em; }
+    /* Further adjustments for very small screens if necessary */
 }
