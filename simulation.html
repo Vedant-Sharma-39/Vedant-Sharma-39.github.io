@@ -5,40 +5,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Microbial Strategy Simulation</title>
-    <link rel="stylesheet</h1>
-            <p>Exploring adaptation and spatial dynamics.</p>
+    <link rel="stylesheet" href="style.css">
+    <!-- p5.js Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+    <!-- NOTE: p5.dom is now included in p5.js core version 1.0 onwards -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.dom.min.js"></script> -->
+    <!-- Your Simulation Sketch -->
+    <script src="sketch.js"></script>
+</head>
+
+<body>
+    <div id="main-container">
+        <header>
+            <h1>Microbial Strategy Simulation</h1>
+            <p class="description">
+                Explore how microbial populations adapt their resource utilization strategies (Glucose vs. Galactose)
+                on a spatial grid with varying nutrient gradients. Orange cells prefer Glucose (high 'P' threshold),
+                while blue cells switch more readily to Galactose (low 'P' threshold). Click on the grid to plant
+                an initial population. Adjust parameters using the controls.
+            </p>
         </header>
 
-        <main>
-            <section class=" intro">
-    <h2>Welcome!</h2>
-    <p>This project hosts various simulations related to microbial ecology and evolution. Currently, the main simulation
-        focuses on resource utilization strategies in spatial gradients.</p>
-    </section>
+        <div id="simulation-area">
+            <!-- Div for the P5 Canvas -->
+            <div id="canvas-container"></div>
 
-    <section class="sim-link">
-        <h2>Simulations Available:</h2>
-        <ul>
-            <li>
-                <a href="simulation/index.html">Nutrient Strategy Simulation (v28)</a>
-                <p>Explore how microbes adapt Glucose/Galactose usage strategy ('p') during range expansion on different
-                    nutrient gradients. Features include colonization thresholds and probabilistic establishment.</p>
-            </li>
-            <!-- Add links to future simulations here -->
-            <!--
-                    <li>
-                        <a href="#">Future Simulation 2</a>
-                        <p>Description of another simulation.</p>
-                    </li>
-                    -->
-        </ul>
-    </section>
-    </main>
+            <!-- *** NEW: Dedicated Div for UI Controls *** -->
+            <div id="ui-panel">
+                <!-- P5 will add UI elements here -->
+            </div>
+        </div>
 
-    <footer>
-        <p>© 2023 Your Name or Project Name</p>
-    </footer>
+        <footer>
+            <p>Simulation based on ecological and evolutionary principles.</p>
+        </footer>
     </div>
-    </body>
+</body>
 
 </html>
