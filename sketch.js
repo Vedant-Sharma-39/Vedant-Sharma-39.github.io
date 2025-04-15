@@ -29,7 +29,7 @@ let PARAMS = {
   maxColonizationProbability: 0.95,
 
   // Gradient Core
-  gradientMode: "stripes_v", // Default to stripes
+  gradientMode: "smooth_radial", 
 
   // Smooth Radial/Linear Controls
   gradientCenter: 0.25,
