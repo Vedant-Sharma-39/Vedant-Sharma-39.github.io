@@ -810,6 +810,7 @@ function updateDynamicUIText() {
 // --- User Interaction (Planting uses new cell defaults) ---
 // =============================================================================
 function mousePressed() {
+<<<<<<< HEAD
     if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
         if (mouseX > canvasWidth) return; // Ignore clicks in UI panel
         let clickX_in_grid_space = mouseX - gridOriginX; let clickY_in_grid_space = mouseY - gridOriginY;
@@ -840,6 +841,24 @@ function plantPatch(centerQ, centerR, radius) {
             }
         }
     }
+=======
+    let canvasRect = select('#canvas-container').elt.getBoundingClientRect();
+    let bodyRect = document.body.getBoundingClientRect();
+    let clickXInCanvas = mouseX - (canvasRect.left - bodyRect.left);
+    let clickYInCanvas = mouseY - (canvasRect.top - bodyRect.top);
+
+    if (clickXInCanvas >= 0 && clickXInCanvas <= canvasWidth && clickYInCanvas >= 0 && clickYInCanvas <= height) {
+        let clickXRelativeToGridOrigin = clickXInCanvas - gridOriginX; let clickYRelativeToGridOrigin = clickYInCanvas - gridOriginY;
+        const hexCoords = pixelToHex(clickXRelativeToGridOrigin, clickYRelativeToGridOrigin);
+        if (axialDistance(hexCoords.q, hexCoords.r, 0, 0) <= maxInitRadius + 2) { plantPatch(hexCoords.q, hexCoords.r, 2); if (!start) redraw(); }
+        else console.log("Click outside defined grid radius.");
+    }
+}
+
+function plantPatch(centerQ, centerR, radius) {
+    let pValueToPlant = constrain(PARAMS.initialP, 0, 1); let count = 0; let newlyPlantedCoords = [];
+    for (let q = -radius; q <= radius; q++) { let r1 = Math.max(-radius, -q - radius); let r2 = Math.min(radius, -q + radius); for (let r = r1; r <= r2; r++) { let targetQ = centerQ + q; let targetR = centerR + r; const coordStr = `${targetQ},${targetR}`; if (glucose.has(coordStr) && !liveCells.has(coordStr)) { const newCell = { p: pValueToPlant }; liveCells.set(coordStr, newCell); newlyPlantedCoords.push(coordStr); count++; } } }
+>>>>>>> parent of 774b6ad (Update sketch.js)
     if (count > 0) {
         let cellsToConsiderForFrontier = new Set(newlyPlantedCoords);
         for (const coordStr of newlyPlantedCoords) {
@@ -864,6 +883,9 @@ function plantPatch(centerQ, centerR, radius) {
         }
     } else console.log(`Could not plant @ (${centerQ},${centerR}) - occupied or outside range.`);
 }
+<<<<<<< HEAD
 
 function keyPressed() { if (key === ' ') { toggleSimulation(); return false; } }
+=======
+>>>>>>> parent of 774b6ad (Update sketch.js)
 // =============================================================================
