@@ -4,49 +4,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Microbial Simulation Project</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link to the root CSS -->
+    <title>Hexagonal Cell Growth Simulation</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1>Microbial Strategy Simulations
-                <div id="main-container">
-                    <header>
-                        <h1>Microbial Strategy Simulation Project</h1>
-                        <p class="description">
-                            Exploring ecological and evolutionary dynamics using agent-based modeling.
-                        </p>
-                    </header>
+    <h1>Hexagonal Cell Growth Simulation</h1>
+    <div class="main-container">
+        <div class="controls">
+            <h2>Parameters</h2>
 
-                    <main id="landing-content">
-                        <h2>About the Simulation</h2>
-                        <p>
-                            This project simulates the spatial spread and adaptation of microbial populations
-                            competing for resources (Glucose and Galactose) on a hexagonal grid. Cells evolve
-                            a strategy ('P' threshold) determining their preference for nutrients based on local
-                            availability. The simulation incorporates factors like fitness-dependent colonization
-                            success and competition for space.
-                        </p>
+            <div class="control-group">
+                <label for="selection">Selection (b_m): <span id="selection-value">1.00</span></label>
+                <!-- MODIFIED: New range, step, and default value -->
+                <input type="range" id="selection" min="0.5" max="1.5" value="1.0" step="0.25">
+            </div>
 
-                        <h2>Run the Simulation</h2>
-                        <p>
-                            Click the link below to launch the interactive simulation. You can adjust various
-                            parameters and observe the resulting population dynamics and evolutionary patterns.
-                        </p>
-                        <a href="simulation.html" class="button-link">Launch Simulation</a>
+            <div class="control-group">
+                <label for="k_total_slider">Switching Rate (k_total): <span id="k_total-value">0.01</span></label>
+                <!-- MODIFIED: Linear slider for log mapping. ID changed. -->
+                <input type="range" id="k_total_slider" min="0" max="400" value="0" step="1">
+            </div>
 
-                        <h2>Future Additions</h2>
-                        <p>
-                            This space may host future updates, analysis results, or related simulation projects.
-                        </p>
-                    </main>
+            <div class="control-group">
+                <label for="phi">Switching Bias (phi): <span id="phi-value">0.00</span></label>
+                <!-- MODIFIED: Added step for snapping -->
+                <input type="range" id="phi" min="-1" max="1" value="0.0" step="0.25">
+            </div>
 
-                    <footer>
-                        <p>A computational biology exploration.</p>
-                    </footer>
+            <div class="control-group">
+                <label>Environment Type:</label>
+                <div class="radio-group">
+                    <input type="radio" id="env-homogeneous" name="environment" value="homogeneous" checked>
+                    <label for="env-homogeneous">Homogeneous</label>
+                    <input type="radio" id="env-heterogeneous" name="environment" value="heterogeneous">
+                    <label for="env-heterogeneous">Bet-Hedging</label>
                 </div>
+            </div>
+
+            <div class="button-group">
+                <button id="start-pause">Start</button>
+                <button id="reset">Reset</button>
+            </div>
+
+            <div class="stats">
+                <h3>Statistics</h3>
+                <p>Time: <span id="time-display">0.00</span></p>
+                <p>Steps: <span id="steps-display">0</span></p>
+                <p>Cell Count: <span id="cells-display">0</span></p>
+                <p>Mutant Fraction: <span id="mutant-frac-display">0.00</span></p>
+            </div>
+        </div>
+        <div class="canvas-container">
+            <canvas id="simulation-canvas"></canvas>
+        </div>
+    </div>
+
+    <script src="simulation.js"></script>
 </body>
 
 </html>
